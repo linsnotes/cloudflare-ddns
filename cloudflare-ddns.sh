@@ -15,7 +15,7 @@ CF_API_TOKEN=""
 CF_ZONE_ID=""
 CF_DOMAIN=""
 
-# TTL (Time to Live) value, 1 is the default for automatic. If CF_PROXY=true, TTL is always automatic
+# TTL value (in seconds), 1 is the default for automatic. If CF_PROXY=true, TTL is always automatic
 CF_TTL=3600
 
 # Proxy setting, true or false. If true, Cloudflare automatically manages the TTL
