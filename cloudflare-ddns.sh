@@ -133,19 +133,53 @@ update_dns() {
         --argjson proxied "$CF_PROXY" \
         '{type: $type, name: $name, content: $content, ttl: $ttl, proxied: $proxied}')
 
-    # log "INFO - JSON payload being sent: $json_payload"
-
+    # Perform the update and capture both the response body and HTTP status code
     local update_result
-    update_result=$(curl -s --max-time $CURL_TIMEOUT -X PUT "$CF_API_BASE_URL/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
+    local http_status
+
+    update_result=$(curl -s -w "\n%{http_code}" --max-time $CURL_TIMEOUT -X PUT "$CF_API_BASE_URL/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
         -H "Authorization: Bearer $CF_API_TOKEN" \
         -H "Content-Type: application/json" \
         --data "$json_payload")
 
-    # Check if the update was successful
-    if echo "$update_result" | jq -e '.success' > /dev/null; then
-        log "SUCCESS - Updated DNS to $CURRENT_IP"
+    # Extract the HTTP status code (last line) and the response body (all but last line)
+    http_status=$(echo "$update_result" | tail -n1)
+    update_result=$(echo "$update_result" | sed '$d')
+
+    # Check if the update was successful based on the HTTP status code
+    if [ "$http_status" -eq 200 ]; then
+        if echo "$update_result" | jq -e '.success' > /dev/null; then
+            log "SUCCESS - Updated DNS to $CURRENT_IP"
+        else
+            local error_message=$(echo "$update_result" | jq -r '.errors[0].message')
+            log "ERROR - Failed to update DNS. Cloudflare error: $error_message. Response: $update_result"
+            exit 1
+        fi
     else
-        log "ERROR - Failed to update DNS. Response: $update_result"
+        log "ERROR - Failed to update DNS. HTTP Status: $http_status. Response: $update_result"
+        case "$http_status" in
+            400)
+                log "ERROR - Bad Request. Check the JSON payload and ensure all required fields are correct."
+                ;;
+            401)
+                log "ERROR - Unauthorized. Verify that the API token is correct and has the necessary permissions."
+                ;;
+            403)
+                log "ERROR - Forbidden. Ensure that the API token has sufficient permissions for the requested operation."
+                ;;
+            404)
+                log "ERROR - Not Found. Verify that the Zone ID and Record ID are correct."
+                ;;
+            429)
+                log "ERROR - Rate limit exceeded. Consider adding a delay between requests or contact Cloudflare support."
+                ;;
+            500|502|503|504)
+                log "ERROR - Server error. Cloudflare might be experiencing issues. Try again later."
+                ;;
+            *)
+                log "ERROR - An unexpected error occurred. HTTP Status: $http_status."
+                ;;
+        esac
         exit 1
     fi
 }
