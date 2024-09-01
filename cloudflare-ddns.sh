@@ -37,7 +37,7 @@ CURL_TIMEOUT=10
 CF_API_BASE_URL="https://api.cloudflare.com/client/v4"
 
 
-# Global varibales
+# Global varibales that do not need to have values
 CURRENT_IP=""
 RECORD_IP=""
 CF_RECORD_ID=""
