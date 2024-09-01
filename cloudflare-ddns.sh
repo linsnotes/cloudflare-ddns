@@ -36,38 +36,12 @@ CURL_TIMEOUT=10
 # Cloudflare API base URL
 CF_API_BASE_URL="https://api.cloudflare.com/client/v4"
 
+# Function for logging
 log() {
     echo "$(date) - $1"
 }
 
-
-
-
-
-# Check if the script has write permission to the log file
-if ! touch "$LOG_FILE" 2>/dev/null; then
-    echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
-    exit 1
-fi
-
-# Redirect error to LOG_FILE
-exec > >(tee -a "$LOG_FILE") 2>&1
-
-log "START - ------ STARTING CLOUDFLARE DDNS UPDATE SCRIPT ------"
-
-# Check if the script is being run as root
-if [ "$(id -u)" -ne 0 ]; then
-    log "ERROR - This script must be run as root. Please use sudo or switch to the root user."
-    exit 1
-fi
-
-# Ensure required Cloudflare configuration variables are set
-if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
-    log "ERROR - Cloudflare API Token, Zone ID, Record ID and Domain must be set in the script."
-    exit 1
-fi
-
-# Check if a command is installed, install if missing
+# Function for checking if jq and curl are installed, install if missing
 install_if_missing() {
     local cmd=$1
     local pkg=$2
@@ -97,6 +71,32 @@ install_if_missing() {
         fi
     fi
 }
+
+
+# Check if the script has write permission to the log file
+if ! touch "$LOG_FILE" 2>/dev/null; then
+    echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
+    exit 1
+fi
+
+# Redirect error to LOG_FILE
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+log "START - ------ STARTING CLOUDFLARE DDNS UPDATE SCRIPT ------"
+
+# Check if the script is being run as root
+if [ "$(id -u)" -ne 0 ]; then
+    log "ERROR - This script must be run as root. Please use sudo or switch to the root user."
+    exit 1
+fi
+
+# Ensure required Cloudflare configuration variables are set
+if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
+    log "ERROR - Cloudflare API Token, Zone ID, Record ID and Domain must be set in the script."
+    exit 1
+fi
+
+# Check if a command is installed, install if missing
 
 install_if_missing jq jq
 install_if_missing curl curl
