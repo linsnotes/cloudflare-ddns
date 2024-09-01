@@ -36,6 +36,14 @@ CURL_TIMEOUT=10
 # Cloudflare API base URL
 CF_API_BASE_URL="https://api.cloudflare.com/client/v4"
 
+log() {
+    echo "$(date) - $1"
+}
+
+
+
+
+
 # Check if the script has write permission to the log file
 if ! touch "$LOG_FILE" 2>/dev/null; then
     echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
@@ -44,10 +52,6 @@ fi
 
 # Redirect error to LOG_FILE
 exec > >(tee -a "$LOG_FILE") 2>&1
-
-log() {
-    echo "$(date) - $1"
-}
 
 log "START - ------ STARTING CLOUDFLARE DDNS UPDATE SCRIPT ------"
 
