@@ -9,10 +9,11 @@ CF_API_TOKEN=""
 CF_ZONE_ID=""
 CF_DOMAIN=""
 
-# TTL value (in seconds), 1 is the default for automatic. If CF_PROXY=true, TTL is always automatic
+# CF_TTL and CF_PROXY settings:
+# For DDNS, it is recommended to keep TTL at a low value (e.g., 60 seconds) to ensure quick IP updates.
+# CF_PROXY should be set to false, as enabling the proxy is not suitable for DDNS. 
+# Changing these settings is not advised unless the implications are fully understood.
 CF_TTL=60
-
-# Proxy setting, true or false. If true, Cloudflare automatically manages the TTL
 CF_PROXY=false
 
 # Log file location
