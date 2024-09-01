@@ -36,7 +36,6 @@ CURL_TIMEOUT=10
 # Cloudflare API base URL
 CF_API_BASE_URL="https://api.cloudflare.com/client/v4"
 
-
 # Global varibales that do not need to have values
 CURRENT_IP=""
 RECORD_IP=""
@@ -168,13 +167,12 @@ if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
 fi
 
 # Check if a command is installed, install if missing
-
 install_if_missing jq jq
 install_if_missing curl curl
 
-
 # Get the current external IP address
 CURRENT_IP=$(get_current_ip)
+
 # Fetch the DNS record to get the current IP and Record ID
 get_dns_record
 
