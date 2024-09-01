@@ -178,34 +178,6 @@ CURRENT_IP=$(get_current_ip)
 # Fetch the DNS record to get the current IP and Record ID
 get_dns_record
 
-# Function to update the Cloudflare DNS record
-update_dns() {
-    local json_payload
-    json_payload=$(jq -n \
-        --arg type "A" \
-        --arg name "$CF_DOMAIN" \
-        --arg content "$CURRENT_IP" \
-        --argjson ttl "$CF_TTL" \
-        --argjson proxied "$CF_PROXY" \
-        '{type: $type, name: $name, content: $content, ttl: $ttl, proxied: $proxied}')
-
-    # log "INFO - JSON payload being sent: $json_payload"
-
-    local update_result
-    update_result=$(curl -s --max-time $CURL_TIMEOUT -X PUT "$CF_API_BASE_URL/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
-        -H "Authorization: Bearer $CF_API_TOKEN" \
-        -H "Content-Type: application/json" \
-        --data "$json_payload")
-
-    # Check if the update was successful
-    if echo "$update_result" | jq -e '.success' > /dev/null; then
-        log "SUCCESS - Updated DNS to $CURRENT_IP"
-    else
-        log "ERROR - Failed to update DNS. Response: $update_result"
-        exit 3
-    fi
-}
-
 # Default: Always update the DNS record, regardless of IP change.
 # To enable Option 2 below, comment out Option 1.
 
