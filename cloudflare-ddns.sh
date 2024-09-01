@@ -122,6 +122,13 @@ get_dns_record() {
 
 # Main flow of the script
 
+# Check if the script is being run as root
+if [ "$(id -u)" -ne 0 ]; then
+    log "ERROR - This script must be run as root. Please use sudo or switch to the root user."
+    exit 1
+fi
+
+
 # Check if the script has write permission to the log file
 if ! touch "$LOG_FILE" 2>/dev/null; then
     echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
