@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Exit Codes:
-# 1: General error (e.g., failure to retrieve the current IP).
-# 2: Error fetching the DNS record.
-# 3: Error updating the DNS record.
-# 4: Required tool (like jq) not installed.
-
 # Cloudflare configuration:
 # - Input your Cloudflare API token within the double quotes.
 # - Input your Cloudflare Zone ID within the double quotes.
@@ -74,13 +68,13 @@ ensure_dependencies_installed() {
             else
                 # If no known package manager is found, log an error and exit
                 log "ERROR - Package manager not supported. Please install $pkg manually."
-                exit 4
+                exit 1
             fi
 
             # After installation, verify that the command is now available
             if ! command -v "$cmd" &> /dev/null; then
                 log "ERROR - Failed to install $pkg."
-                exit 4
+                exit 1
             fi
         fi
     done
@@ -124,7 +118,7 @@ get_dns_record() {
         log "INFO - Successfully fetched DNS record."
     else
         log "ERROR - Failed to fetch the DNS record. Response: $response"
-        exit 2
+        exit 1
     fi
 }
 
@@ -152,7 +146,7 @@ update_dns() {
         log "SUCCESS - Updated DNS to $CURRENT_IP"
     else
         log "ERROR - Failed to update DNS. Response: $update_result"
-        exit 3
+        exit 1
     fi
 }
 
