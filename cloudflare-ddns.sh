@@ -36,6 +36,12 @@ CURL_TIMEOUT=10
 # Cloudflare API base URL
 CF_API_BASE_URL="https://api.cloudflare.com/client/v4"
 
+
+# Global varibales
+CURRENT_IP=""
+RECORD_IP=""
+CF_RECORD_ID=""
+
 # Function for logging
 log() {
     echo "$(date) - $1"
@@ -72,6 +78,29 @@ install_if_missing() {
     fi
 }
 
+# Function for getting the current external IP address
+get_current_ip() {
+    local current_ip retries
+    for service in \
+        "http://ipv4.icanhazip.com" \
+        "https://domains.google.com/checkip" \
+        "http://checkip.amazonaws.com"; do
+
+        retries=0
+        while [ $retries -lt $MAX_RETRIES ]; do
+            current_ip=$(curl -s --max-time $CURL_TIMEOUT $service | sed -n 's/^\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*$/\1/p')
+            if [[ -n $current_ip ]]; then
+                echo "$current_ip"
+                return 0
+            else
+                ((retries++))
+                sleep $RETRY_DELAY
+            fi
+        done
+    done
+    log "ERROR - Unable to retrieve current IP address from all services"
+    exit 1
+}
 
 # Check if the script has write permission to the log file
 if ! touch "$LOG_FILE" 2>/dev/null; then
@@ -103,33 +132,7 @@ install_if_missing curl curl
 
 
 # Get the current external IP address
-get_current_ip() {
-    local current_ip retries
-    for service in \
-        "http://ipv4.icanhazip.com" \
-        "https://domains.google.com/checkip" \
-        "http://checkip.amazonaws.com"; do
-
-        retries=0
-        while [ $retries -lt $MAX_RETRIES ]; do
-            current_ip=$(curl -s --max-time $CURL_TIMEOUT $service | sed -n 's/^\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*$/\1/p')
-            if [[ -n $current_ip ]]; then
-                echo "$current_ip"
-                return 0
-            else
-                ((retries++))
-                sleep $RETRY_DELAY
-            fi
-        done
-    done
-    log "ERROR - Unable to retrieve current IP address from all services"
-    exit 1
-}
-
-
 CURRENT_IP=$(get_current_ip)
-RECORD_IP=""
-CF_RECORD_ID=""
 
 # Function to fetch the current DNS record
 get_dns_record() {
