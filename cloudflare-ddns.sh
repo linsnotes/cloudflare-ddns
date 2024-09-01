@@ -120,6 +120,8 @@ get_dns_record() {
     fi
 }
 
+# Main flow of the script
+
 # Check if the script has write permission to the log file
 if ! touch "$LOG_FILE" 2>/dev/null; then
     echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
