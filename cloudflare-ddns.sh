@@ -102,6 +102,24 @@ get_current_ip() {
     exit 1
 }
 
+# Function to fetch the current DNS record
+get_dns_record() {
+    local response
+    response=$(curl -s --max-time $CURL_TIMEOUT -X GET "$CF_API_BASE_URL/zones/$CF_ZONE_ID/dns_records?type=A&name=$CF_DOMAIN" \
+        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Content-Type: application/json")
+
+    # Check if the fetch was successful
+    if echo "$response" | jq -e '.success' > /dev/null; then
+        RECORD_IP=$(echo "$response" | jq -r '.result[0].content')
+        CF_RECORD_ID=$(echo "$response" | jq -r '.result[0].id')
+        log "INFO - Successfully fetched DNS record."
+    else
+        log "ERROR - Failed to fetch the DNS record. Response: $response"
+        exit 2
+    fi
+}
+
 # Check if the script has write permission to the log file
 if ! touch "$LOG_FILE" 2>/dev/null; then
     echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
@@ -133,25 +151,6 @@ install_if_missing curl curl
 
 # Get the current external IP address
 CURRENT_IP=$(get_current_ip)
-
-# Function to fetch the current DNS record
-get_dns_record() {
-    local response
-    response=$(curl -s --max-time $CURL_TIMEOUT -X GET "$CF_API_BASE_URL/zones/$CF_ZONE_ID/dns_records?type=A&name=$CF_DOMAIN" \
-        -H "Authorization: Bearer $CF_API_TOKEN" \
-        -H "Content-Type: application/json")
-
-    # Check if the fetch was successful
-    if echo "$response" | jq -e '.success' > /dev/null; then
-        RECORD_IP=$(echo "$response" | jq -r '.result[0].content')
-        CF_RECORD_ID=$(echo "$response" | jq -r '.result[0].id')
-        log "INFO - Successfully fetched DNS record."
-    else
-        log "ERROR - Failed to fetch the DNS record. Response: $response"
-        exit 2
-    fi
-}
-
 # Fetch the DNS record to get the current IP and Record ID
 get_dns_record
 
