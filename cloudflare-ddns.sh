@@ -124,14 +124,7 @@ get_dns_record() {
 
 # Check if the script is being run as root
 if [ "$(id -u)" -ne 0 ]; then
-    log "ERROR - This script must be run as root. Please use sudo or switch to the root user."
-    exit 1
-fi
-
-
-# Check if the script has write permission to the log file
-if ! touch "$LOG_FILE" 2>/dev/null; then
-    echo "$(date) - ERROR - No write permission to the log file: $LOG_FILE"
+    echo "ERROR - This script must be run as root. Please use sudo or switch to the root user."
     exit 1
 fi
 
@@ -139,12 +132,6 @@ fi
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 log "START - ------ STARTING CLOUDFLARE DDNS UPDATE SCRIPT ------"
-
-# Check if the script is being run as root
-if [ "$(id -u)" -ne 0 ]; then
-    log "ERROR - This script must be run as root. Please use sudo or switch to the root user."
-    exit 1
-fi
 
 # Ensure required Cloudflare configuration variables are set
 if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
