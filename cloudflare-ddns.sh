@@ -47,7 +47,7 @@ log() {
 }
 
 # Function for checking if required commands are installed and installing them if missing
-install_if_missing() {
+ensure_dependencies_installed() {
     # Declare an associative array to map commands to their package names
     declare -A cmd_pkg_map=( ["jq"]="jq" ["curl"]="curl" )
 
@@ -176,7 +176,7 @@ if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
 fi
 
 # Check if a command is installed, install if missing
-install_if_missing
+ensure_dependencies_installed
 
 # Get the current external IP address
 CURRENT_IP=$(get_current_ip)
