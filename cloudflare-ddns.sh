@@ -46,35 +46,44 @@ log() {
     echo "$(date) - $1"
 }
 
-# Function for checking if jq and curl are installed, install if missing
+# Function for checking if required commands are installed and installing them if missing
 install_if_missing() {
-    local cmd=$1
-    local pkg=$2
+    # Declare an associative array to map commands to their package names
+    declare -A cmd_pkg_map=( ["jq"]="jq" ["curl"]="curl" )
 
-    if ! command -v "$cmd" &> /dev/null; then
-        log "INFO - $cmd not found, attempting to install..."
-
-        if command -v apt-get &> /dev/null; then
-            apt-get update && apt-get install -y "$pkg"
-        elif command -v yum &> /dev/null; then
-            yum install -y "$pkg"
-        elif command -v dnf &> /dev/null; then
-            dnf install -y "$pkg"
-        elif command -v zypper &> /dev/null; then
-            zypper install -y "$pkg"
-        elif command -v pacman &> /dev/null; then
-            pacman -Syu --noconfirm "$pkg"
-        else
-            log "ERROR - Package manager not supported. Please install $pkg manually."
-            exit 4
-        fi
-
-        # Check if the installation was successful
+    # Loop through the array to check each command
+    for cmd in "${!cmd_pkg_map[@]}"; do
+        # Check if the command is not found on the system
         if ! command -v "$cmd" &> /dev/null; then
-            log "ERROR - Failed to install $pkg."
-            exit 4
+            log "INFO - $cmd not found, attempting to install..."
+
+            # Get the package name associated with the command
+            pkg=${cmd_pkg_map[$cmd]}
+
+            # Detect the package manager and install the package
+            if command -v apt-get &> /dev/null; then
+                apt-get update && apt-get install -y "$pkg"
+            elif command -v yum &> /dev/null; then
+                yum install -y "$pkg"
+            elif command -v dnf &> /dev/null; then
+                dnf install -y "$pkg"
+            elif command -v zypper &> /dev/null; then
+                zypper install -y "$pkg"
+            elif command -v pacman &> /dev/null; then
+                pacman -Syu --noconfirm "$pkg"
+            else
+                # If no known package manager is found, log an error and exit
+                log "ERROR - Package manager not supported. Please install $pkg manually."
+                exit 4
+            fi
+
+            # After installation, verify that the command is now available
+            if ! command -v "$cmd" &> /dev/null; then
+                log "ERROR - Failed to install $pkg."
+                exit 4
+            fi
         fi
-    fi
+    done
 }
 
 # Function for getting the current external IP address
@@ -167,8 +176,7 @@ if [ -z "$CF_API_TOKEN" ] || [ -z "$CF_ZONE_ID" ] || [ -z "$CF_DOMAIN" ]; then
 fi
 
 # Check if a command is installed, install if missing
-install_if_missing jq jq
-install_if_missing curl curl
+install_if_missing
 
 # Get the current external IP address
 CURRENT_IP=$(get_current_ip)
