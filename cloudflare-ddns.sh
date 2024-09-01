@@ -151,7 +151,8 @@ update_dns() {
         if echo "$update_result" | jq -e '.success' > /dev/null; then
             log "SUCCESS - Updated DNS to $CURRENT_IP"
         else
-            local error_message=$(echo "$update_result" | jq -r '.errors[0].message')
+            local error_message
+            error_message=$(echo "$update_result" | jq -r '.errors[0].message')
             log "ERROR - Failed to update DNS. Cloudflare error: $error_message. Response: $update_result"
             exit 1
         fi
