@@ -124,6 +124,8 @@ get_current_ip() {
 
 
 CURRENT_IP=$(get_current_ip)
+RECORD_IP=""
+CF_RECORD_ID=""
 
 # Function to fetch the current DNS record
 get_dns_record() {
